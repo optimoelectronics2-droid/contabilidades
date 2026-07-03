@@ -2145,7 +2145,7 @@ export const useERPStore = create(
         try { localStorage.setItem(backupKey, JSON.stringify(persistedState)) } catch {}
         const migrated = migrateTenantState(persistedState)
         // Post-migration validation: ensure critical arrays survived
-        const criticalArrays = ['invoices', 'quotes', 'customers', 'products', 'receivables', 'payments', 'expenses', 'conduces', 'creditNotes', 'suppliers', 'branches', 'stores', 'users']
+        const criticalArrays = ['invoices', 'quotes', 'customers', 'products', 'receivables', 'payments', 'expenses', 'conduces', 'creditNotes', 'suppliers', 'branches', 'stores']
         const missing = criticalArrays.filter((name) => !Array.isArray(migrated[name]))
         if (missing.length > 0) {
           console.error('[Migrate] Migracion produjo datos corruptos. Colecciones perdidas:', missing.join(', '), 'Backup guardado en', backupKey)
@@ -2178,7 +2178,7 @@ export const useERPStore = create(
                 var corrupted = []
                 for (var key of Object.keys(recovered)) {
                   // Expected arrays that should not be null/undefined
-                  if (['invoices', 'quotes', 'customers', 'products', 'receivables', 'payments', 'expenses', 'conduces', 'creditNotes', 'suppliers', 'branches', 'stores', 'users', 'productEntries', 'inventoryMovements', 'financialMovements', 'serviceOrders', 'taxSequences', 'auditLogs', 'companies', 'companyMemberships'].includes(key)) {
+                  if (['invoices', 'quotes', 'customers', 'products', 'receivables', 'payments', 'expenses', 'conduces', 'creditNotes', 'suppliers', 'branches', 'stores', 'productEntries', 'inventoryMovements', 'financialMovements', 'serviceOrders', 'taxSequences', 'auditLogs'].includes(key)) {
                     if (!Array.isArray(recovered[key])) {
                       if (recovered[key] === null || recovered[key] === undefined) {
                         recovered[key] = []
