@@ -8,7 +8,7 @@ import { LABEL_SIZES, DPI_VALUES } from '../../lib/labelEngine'
 
 export function SettingsPage() {
   const toast = useToast()
-  const company = useERPStore((state) => state.company)
+  const company = useERPStore((state) => state.company) || {}
   const branches = useERPStore((state) => state.branches)
   const suppliers = useERPStore((state) => state.suppliers)
   const categories = useERPStore((state) => state.categories)

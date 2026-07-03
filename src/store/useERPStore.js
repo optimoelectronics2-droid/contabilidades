@@ -2231,6 +2231,12 @@ export const useERPStore = create(
 )
 if (import.meta.env.DEV) window.__STORE__ = useERPStore
 
+useERPStore.subscribe((state) => {
+  if (!state.company || typeof state.company !== 'object') {
+    useERPStore.setState({ company: defaultCompany, activeCompanyId: defaultCompany.id })
+  }
+})
+
 function migrateTenantState(state = {}) {
   const company = normalizeCompany({ ...defaultCompany, ...(state.company || state.settings || {}) })
   return {

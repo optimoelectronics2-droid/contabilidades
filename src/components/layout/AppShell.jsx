@@ -91,7 +91,7 @@ export function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const setCommandOpen = useERPStore((state) => state.setCommandOpen)
-  const company = useERPStore((state) => state.company)
+  const company = useERPStore((state) => state.company) || {}
   const cash = useERPStore((state) => state.cashRegister)
 
   return (
