@@ -2108,7 +2108,7 @@ export const useERPStore = create(
     {
       name: 'trifusion-erp-state-v2',
       storage: createJSONStorage(() => localStorage),
-      version: 3,
+      version: 4,
       partialize: (state) => ({
         activeCompanyId: state.activeCompanyId,
         company: state.company,
@@ -2152,8 +2152,10 @@ export const useERPStore = create(
           // Return the best we have — migrated state may have missing arrays but won't crash
           for (const name of missing) migrated[name] = []
         }
-        if (!migrated.companies?.length) {
-          console.warn('[Migrate] No hay empresas tras migracion, usando predeterminada.')
+        if (!migrated.company || typeof migrated.company !== 'object') {
+          console.warn('[Migrate] company invalido tras migracion, restaurando default.')
+          migrated.company = defaultCompany
+          migrated.activeCompanyId = defaultCompany.id
         }
         return migrated
       },
@@ -2204,18 +2206,24 @@ export const useERPStore = create(
             localStorage.removeItem(persistKey)
           } catch { /* ignore */ }
           window.location.reload()
-        } else if (state && state.invoices && state.verifyDataIntegrity) {
-          setTimeout(function() {
-            try {
-              var report = state.verifyDataIntegrity()
-              var total = (report.invalidStatusInvoices||0)+(report.orphanReceivables||0)+(report.orphanPayments||0)+(report.orphanInventoryMovements||0)+(report.orphanFinancialMovements||0)+(report.orphanCreditNotes||0)
-              if (total > 0) {
-                console.warn('[ERP] Inconsistencias detectadas al cargar, NO se eliminan datos automaticamente:', report)
-              }
-              state.recalculateFinancialFields()
-              state.refreshReportStats()
-            } catch(e) { console.error('Post-hydration cleanup error:', e) }
-          }, 100)
+        } else if (state) {
+          if (!state.company || typeof state.company !== 'object') {
+            console.warn('[Persist] company invalido tras rehidratacion, restaurando default.')
+            useERPStore.setState({ company: defaultCompany, activeCompanyId: defaultCompany.id })
+          }
+          if (state.invoices && state.verifyDataIntegrity) {
+            setTimeout(function() {
+              try {
+                var report = state.verifyDataIntegrity()
+                var total = (report.invalidStatusInvoices||0)+(report.orphanReceivables||0)+(report.orphanPayments||0)+(report.orphanInventoryMovements||0)+(report.orphanFinancialMovements||0)+(report.orphanCreditNotes||0)
+                if (total > 0) {
+                  console.warn('[ERP] Inconsistencias detectadas al cargar, NO se eliminan datos automaticamente:', report)
+                }
+                state.recalculateFinancialFields()
+                state.refreshReportStats()
+              } catch(e) { console.error('Post-hydration cleanup error:', e) }
+            }, 100)
+          }
         }
       },
     },
