@@ -102,10 +102,10 @@ export function AppShell() {
         <div className="flex h-full flex-col overflow-y-auto p-3">
           <button onClick={() => navigate('/configuracion')} className="flex min-h-12 shrink-0 items-center gap-3 rounded-lg px-2 text-left hover:bg-white/[0.05]">
             <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg font-display text-xl font-extrabold shadow-lg" style={{ background: 'var(--color-nav)', boxShadow: '0 4px 12px rgba(59,130,246,.25)' }}>
-              {company.logoUrl ? <img src={company.logoUrl} alt="" className="h-full w-full object-contain" /> : company.name ? company.name[0] : 'T'}
+              {company?.logoUrl ? <img src={company.logoUrl} alt="" className="h-full w-full object-contain" /> : company?.name ? company.name[0] : 'T'}
             </div>
             <div className="min-w-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-              <p className="truncate font-display text-sm font-bold leading-5">{company.name || 'Configurar empresa'}</p>
+              <p className="truncate font-display text-sm font-bold leading-5">{company?.name || 'Configurar empresa'}</p>
               <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-tertiary)' }}>Fiscal ERP</p>
             </div>
           </button>
@@ -138,7 +138,7 @@ export function AppShell() {
               <CircleDollarSign size={18} />
               <span className="hidden truncate text-sm font-bold group-hover:inline">Caja {cash.status}</span>
             </div>
-            <p className="mt-1 hidden truncate text-xs group-hover:block" style={{ color: 'var(--text-secondary)' }}>{company.rnc || 'Sin RNC'} · {company.city || 'Configure ubicacion'}</p>
+            <p className="mt-1 hidden truncate text-xs group-hover:block" style={{ color: 'var(--text-secondary)' }}>{company?.rnc || 'Sin RNC'} · {company?.city || 'Configure ubicacion'}</p>
             <button onClick={() => signOut(auth)} className="mt-3 hidden text-xs font-bold group-hover:block" style={{ color: 'rgb(254, 202, 202)' }}>Cerrar sesion</button>
           </div>
         </div>
