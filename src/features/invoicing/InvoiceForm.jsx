@@ -275,12 +275,12 @@ export function InvoiceForm({ initialInvoice, duplicateOf, onDone }) {
         <section className="panel rounded-lg p-4">
           <p className="text-xs font-extrabold uppercase text-blue-200/80">Factura</p>
           <div className="mt-3 space-y-3">
-            <select id="invoice-ncf-type" name="invoice-ncf-type" value={form.ncfType} onChange={(event) => setField('ncfType', event.target.value)} className="input-dark" aria-label="invoice-ncf-type">
+            <select id="invoice-ncf-type" name="invoice-ncf-type" autoComplete="off" value={form.ncfType} onChange={(event) => setField('ncfType', event.target.value)} className="input-dark" aria-label="invoice-ncf-type">
               {ncfOptions(form.mode).map((type) => <option key={type} value={type}>{type} {ncfTypes[type] || ''}</option>)}
             </select>
-            {editingIssued ? <input id="invoice-number" name="invoice-number" value={form.number} onChange={(event) => setField('number', event.target.value)} className="input-dark" placeholder="Numero / correlativo" aria-label="invoice-number" /> : null}
-            {editingIssued ? <input id="invoice-ncf" name="invoice-ncf" value={form.ncf} onChange={(event) => setField('ncf', event.target.value)} className="input-dark" placeholder="NCF editable" aria-label="invoice-ncf" /> : null}
-            <select id="invoice-mode" name="invoice-mode" value={form.mode} onChange={(event) => setField('mode', event.target.value)} className="input-dark" aria-label="invoice-mode">
+            {editingIssued ? <input id="invoice-number" name="invoice-number" autoComplete="off" value={form.number} onChange={(event) => setField('number', event.target.value)} className="input-dark" placeholder="Numero / correlativo" aria-label="invoice-number" /> : null}
+            {editingIssued ? <input id="invoice-ncf" name="invoice-ncf" autoComplete="off" value={form.ncf} onChange={(event) => setField('ncf', event.target.value)} className="input-dark" placeholder="NCF editable" aria-label="invoice-ncf" /> : null}
+            <select id="invoice-mode" name="invoice-mode" autoComplete="off" value={form.mode} onChange={(event) => setField('mode', event.target.value)} className="input-dark" aria-label="invoice-mode">
               <option value={invoiceModes.TAXED}>Con ITBIS</option>
               <option value={invoiceModes.NO_TAX}>Sin ITBIS</option>
               <option value={invoiceModes.MIXED}>Mixta</option>
@@ -416,10 +416,10 @@ export function InvoiceForm({ initialInvoice, duplicateOf, onDone }) {
 
       <Modal open={customerModal} onClose={() => setCustomerModal(false)} title="Cliente rapido" size="md" footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setCustomerModal(false)}>Cancelar</Button><Button variant="success" onClick={saveQuickCustomer}>Guardar</Button></div>}>
         <div className="grid gap-3 md:grid-cols-2">
-          <Field label="Tipo"><select id="quick-customer-type" name="quick-customer-type" value={customerDraft.type} onChange={(event) => setCustomerDraft((state) => ({ ...state, type: event.target.value }))} className="input-dark"><option value="persona">Persona</option><option value="empresa">Empresa</option><option value="final">Final</option></select></Field>
-          <Field label="Nombre"><input id="quick-customer-name" name="quick-customer-name" value={customerDraft.name} onChange={(event) => setCustomerDraft((state) => ({ ...state, name: event.target.value }))} className="input-dark" autoFocus /></Field>
-          <Field label="RNC / Cedula"><input id="quick-customer-document" name="quick-customer-document" value={customerDraft.document} onChange={(event) => setCustomerDraft((state) => ({ ...state, document: event.target.value }))} className="input-dark" /></Field>
-          <Field label="Telefono"><input id="quick-customer-phone" name="quick-customer-phone" value={customerDraft.phone} onChange={(event) => setCustomerDraft((state) => ({ ...state, phone: event.target.value, whatsapp: event.target.value }))} className="input-dark" /></Field>
+          <Field label="Tipo"><select id="quick-customer-type" name="quick-customer-type" autoComplete="off" value={customerDraft.type} onChange={(event) => setCustomerDraft((state) => ({ ...state, type: event.target.value }))} className="input-dark"><option value="persona">Persona</option><option value="empresa">Empresa</option><option value="final">Final</option></select></Field>
+          <Field label="Nombre"><input id="quick-customer-name" name="quick-customer-name" autoComplete="off" value={customerDraft.name} onChange={(event) => setCustomerDraft((state) => ({ ...state, name: event.target.value }))} className="input-dark" autoFocus /></Field>
+          <Field label="RNC / Cedula"><input id="quick-customer-document" name="quick-customer-document" autoComplete="off" value={customerDraft.document} onChange={(event) => setCustomerDraft((state) => ({ ...state, document: event.target.value }))} className="input-dark" /></Field>
+          <Field label="Telefono"><input id="quick-customer-phone" name="quick-customer-phone" autoComplete="tel" value={customerDraft.phone} onChange={(event) => setCustomerDraft((state) => ({ ...state, phone: event.target.value, whatsapp: event.target.value }))} className="input-dark" /></Field>
         </div>
       </Modal>
 

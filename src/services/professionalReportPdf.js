@@ -1,9 +1,13 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { SYSTEM_TIME_ZONE } from '../lib/dateTime'
 
 const money = new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' })
 const num = (v) => money.format(v || 0)
-const shortDate = (d) => d ? new Date(d).toLocaleDateString('es-DO') : '-'
+const shortDate = (d) => d
+  ? new Intl.DateTimeFormat('es-DO', { timeZone: SYSTEM_TIME_ZONE, day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(d))
+  : '-'
+const formatTime = (d) => new Intl.DateTimeFormat('es-DO', { timeZone: SYSTEM_TIME_ZONE, hour: '2-digit', minute: '2-digit' }).format(d)
 const PAGE_W = 210; const PAGE_H = 297; const MARGIN = 18; const CONTENT_W = PAGE_W - MARGIN * 2
 
 const COLORS = {
@@ -60,7 +64,7 @@ function drawCoverPage(doc, company, stats, genDate, user) {
 
   doc.setFontSize(9)
   doc.setTextColor(...COLORS.muted)
-  doc.text(`Generado: ${genDate.toLocaleDateString('es-DO')} a las ${genDate.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}`, MARGIN, 158)
+  doc.text(`Generado: ${shortDate(genDate)} a las ${formatTime(genDate)}`, MARGIN, 158)
   doc.text(`Usuario: ${user || 'Sistema'}`, MARGIN, 165)
   doc.text(`Periodo analizado: Todo el historico`, MARGIN, 172)
 
@@ -614,7 +618,7 @@ function addPageFooters(doc, company, genDate) {
     doc.setPage(page)
     doc.setTextColor(...COLORS.muted)
     doc.setFontSize(7)
-    doc.text(`${company?.name || 'Sistema ERP'} | Reporte Ejecutivo | ${genDate.toLocaleDateString('es-DO')}`, MARGIN, PAGE_H - 12)
+    doc.text(`${company?.name || 'Sistema ERP'} | Reporte Ejecutivo | ${shortDate(genDate)}`, MARGIN, PAGE_H - 12)
     doc.text(`Pagina ${page} de ${count}`, PAGE_W - MARGIN, PAGE_H - 12, { align: 'right' })
     doc.setDrawColor(...COLORS.light)
     doc.setLineWidth(0.3)
@@ -623,7 +627,7 @@ function addPageFooters(doc, company, genDate) {
   if (count > 1) {
     doc.setPage(2); doc.setDrawColor(...COLORS.light); doc.line(MARGIN, PAGE_H - 16, PAGE_W - MARGIN, PAGE_H - 16)
     doc.setTextColor(...COLORS.muted); doc.setFontSize(7)
-    doc.text(`${company?.name || 'Sistema ERP'} | Reporte Ejecutivo | ${genDate.toLocaleDateString('es-DO')}`, MARGIN, PAGE_H - 12)
+    doc.text(`${company?.name || 'Sistema ERP'} | Reporte Ejecutivo | ${shortDate(genDate)}`, MARGIN, PAGE_H - 12)
     doc.text(`Pagina 2 de ${count}`, PAGE_W - MARGIN, PAGE_H - 12, { align: 'right' })
   }
 }

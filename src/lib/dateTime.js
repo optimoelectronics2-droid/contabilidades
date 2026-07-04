@@ -1,7 +1,7 @@
 export const SYSTEM_TIME_ZONE = 'America/Santo_Domingo'
 
 export function nowIso() {
-  return new Date().toISOString()
+  return new Date(Date.now() - 5000).toISOString()
 }
 
 export function todayIso() {

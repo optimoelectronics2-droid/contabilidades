@@ -49,9 +49,9 @@ export function AuthPage() {
           <p className="mt-2 text-sm text-white/45">{mode === 'login' ? 'Inicia sesion con Firebase Authentication.' : 'Registra el primer usuario del sistema.'}</p>
         </div>
         <div className="space-y-3">
-          {mode === 'register' ? <Input id="auth-name" name="name" label="Nombre" value={form.name} onChange={(value) => setForm((state) => ({ ...state, name: value }))} /> : null}
-          <Input id="auth-email" name="email" label="Email" value={form.email} onChange={(value) => setForm((state) => ({ ...state, email: value }))} />
-          <Input id="auth-password" name="password" label="Contraseña" type="password" value={form.password} onChange={(value) => setForm((state) => ({ ...state, password: value }))} />
+          {mode === 'register' ? <Input id="auth-name" name="name" label="Nombre" autoComplete="name" value={form.name} onChange={(value) => setForm((state) => ({ ...state, name: value }))} /> : null}
+          <Input id="auth-email" name="email" label="Email" autoComplete="email" value={form.email} onChange={(value) => setForm((state) => ({ ...state, email: value }))} />
+          <Input id="auth-password" name="password" label="Contraseña" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={form.password} onChange={(value) => setForm((state) => ({ ...state, password: value }))} />
         </div>
         <Button disabled={loading} className="mt-5 w-full" type="submit">{loading ? 'Procesando...' : mode === 'login' ? 'Iniciar sesion' : 'Registrarse'}</Button>
         <div className="mt-4 flex justify-between text-sm">
@@ -63,8 +63,8 @@ export function AuthPage() {
   )
 }
 
-function Input({ id, name, label, value, onChange, type = 'text' }) {
-  return <label htmlFor={id}><span className="label-dark">{label}</span><input id={id} name={name || id} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="input-dark" /></label>
+function Input({ id, name, label, value, onChange, type = 'text', autoComplete }) {
+  return <label htmlFor={id}><span className="label-dark">{label}</span><input id={id} name={name || id} type={type} value={value} autoComplete={autoComplete} onChange={(event) => onChange(event.target.value)} className="input-dark" /></label>
 }
 
 function firebaseMessage(error) {

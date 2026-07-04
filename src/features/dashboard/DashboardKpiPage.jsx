@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { DataTable } from '../../components/ui/DataTable'
 import { buildCashCutReport, cashMovementSignedAmount } from '../../lib/cashDeskEngine'
 import { downloadCsvWorkbook } from '../../lib/csvExport'
-import { dayKeyInSystemZone, parseDate as parseSystemDate, todayIso } from '../../lib/dateTime'
+import { dayKeyInSystemZone, parseDate as parseSystemDate, SYSTEM_TIME_ZONE, todayIso } from '../../lib/dateTime'
 import { buildExecutiveDashboardModel } from '../../lib/executiveDashboardEngine'
 import { currency, formatDate } from '../../lib/formatters'
 import { isActiveProduct, isActiveReceivable, isReportableInvoice as isRealInvoice, sanitizeCashRegisterWithSources } from '../../lib/realDataGuards'
@@ -146,7 +146,7 @@ export function DashboardKpiPage() {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor(150)
-    doc.text(`Generado automaticamente por el sistema de facturacion · ${new Date().toLocaleString()}`, margin, doc.internal.pageSize.getHeight() - 8)
+    doc.text(`Generado automaticamente por el sistema de facturacion · ${formatDate(new Date())}`, margin, doc.internal.pageSize.getHeight() - 8)
     doc.save(`${report.fileName}.pdf`)
   }
 
@@ -381,7 +381,7 @@ function abonosReport({ receivables, filters, model }) {
     (recv.payments || []).filter((p) => p.status !== 'deleted').forEach((payment) => {
       allPayments.push({
         Fecha: formatDate(payment.date || payment.createdAt),
-        Hora: new Date(payment.date || payment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        Hora: new Intl.DateTimeFormat('es-DO', { timeZone: SYSTEM_TIME_ZONE, hour: '2-digit', minute: '2-digit' }).format(parseDate(payment.date || payment.createdAt)),
         Cliente: recv.customerName || payment.customerName || '',
         Factura: recv.invoiceNumber || recv.invoiceId || '',
         Metodo: payment.method || 'N/A',
@@ -598,7 +598,7 @@ function invoiceToSalesRow(invoice) {
   const subtotal = Number(invoice.totals?.subtotal || 0)
   const cost = Number(invoice.totals?.cost || 0)
   const profit = Number(invoice.totals?.profit ?? subtotal - cost)
-  return { Fecha: formatDate(date), Hora: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), Factura: invoice.number || invoice.ncf || '', Cliente: invoice.customerName || 'Cliente', Subtotal: currency.format(subtotal), ITBIS: currency.format(invoice.totals?.itbis || 0), Total: currency.format(invoice.totals?.total || 0), Costo: currency.format(cost), Ganancia: currency.format(profit), Margen: `${subtotal ? ((profit / subtotal) * 100).toFixed(2) : '0.00'}%`, Pago: paymentLabel(invoice), Estado: invoice.status || '', InvoiceId: invoice.id }
+  return { Fecha: formatDate(date), Hora: new Intl.DateTimeFormat('es-DO', { timeZone: SYSTEM_TIME_ZONE, hour: '2-digit', minute: '2-digit' }).format(date), Factura: invoice.number || invoice.ncf || '', Cliente: invoice.customerName || 'Cliente', Subtotal: currency.format(subtotal), ITBIS: currency.format(invoice.totals?.itbis || 0), Total: currency.format(invoice.totals?.total || 0), Costo: currency.format(cost), Ganancia: currency.format(profit), Margen: `${subtotal ? ((profit / subtotal) * 100).toFixed(2) : '0.00'}%`, Pago: paymentLabel(invoice), Estado: invoice.status || '', InvoiceId: invoice.id }
 }
 
 function filterRows(rows, filters, dateGetter) {

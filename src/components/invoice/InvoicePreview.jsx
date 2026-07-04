@@ -252,10 +252,10 @@ async function sharePdfViaWhatsApp(invoice, customer, company) {
   const blob = pdf.output('blob')
   const file = new File([blob], `${title}.pdf`, { type: 'application/pdf' })
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title, text }); return } catch { /* fall through to download */ }
+    try { await navigator.share({ files: [file], title, text }); return } catch { /* fall through */ }
   }
   downloadBlob(blob, `${title}.pdf`)
-  if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text + `\n\nPDF descargado: ${title}.pdf`)}`)
+  if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
 }
 
 async function sharePdfViaEmail(invoice, customer, company) {

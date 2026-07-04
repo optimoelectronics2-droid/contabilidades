@@ -206,6 +206,7 @@ export function InvoiceList() {
             <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
               id="invoice-list-query"
+              autoComplete="off"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="h-10 w-full rounded-xl border border-[#243244] bg-[#0f172a] pl-10 pr-4 text-sm text-[#F8FAFC] outline-none transition placeholder:text-[#94A3B8]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
@@ -250,13 +251,13 @@ export function InvoiceList() {
             <ChevronDown size={14} className={`transition duration-200 ${advancedOpen ? 'rotate-180' : ''}`} />
           </button>
           <div className="flex items-center gap-2">
-            <select id="invoice-list-mode" value={mode} onChange={(e) => setMode(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-mode">
+            <select id="invoice-list-mode" autoComplete="off" value={mode} onChange={(e) => setMode(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-mode">
               <option value="all" className="bg-[#0f172a]">Modo: todos</option>
               <option value={invoiceModes.TAXED} className="bg-[#0f172a]">Con ITBIS</option>
               <option value={invoiceModes.NO_TAX} className="bg-[#0f172a]">Sin ITBIS</option>
               <option value={invoiceModes.MIXED} className="bg-[#0f172a]">Mixta</option>
             </select>
-            <select id="invoice-list-status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-status">
+            <select id="invoice-list-status" autoComplete="off" value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-status">
               <option value="all" className="bg-[#0f172a]">Estado: todos</option>
               <option value="draft" className="bg-[#0f172a]">Borrador</option>
               <option value="paid" className="bg-[#0f172a]">Pagada</option>
@@ -264,7 +265,7 @@ export function InvoiceList() {
               <option value="credit" className="bg-[#0f172a]">Fiada / pendiente</option>
               <option value="voided" className="bg-[#0f172a]">Anulada</option>
             </select>
-            <select id="invoice-list-ncf-type" value={ncfType} onChange={(e) => setNcfType(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-ncf-type">
+            <select id="invoice-list-ncf-type" autoComplete="off" value={ncfType} onChange={(e) => setNcfType(e.target.value)} className="h-9 rounded-xl border border-[#243244] bg-[#0f172a] px-3 text-xs font-bold text-[#F8FAFC] outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" aria-label="invoice-list-ncf-type">
               <option value="all" className="bg-[#0f172a]">NCF todos</option>
               <option className="bg-[#0f172a]">B01</option>
               <option className="bg-[#0f172a]">B02</option>
