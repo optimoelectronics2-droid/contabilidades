@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 
 export function Autocomplete({
   value,
@@ -19,13 +18,14 @@ export function Autocomplete({
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [flipUp, setFlipUp] = useState(false)
   const inputRef = useRef(null)
   const menuRef = useRef(null)
+  const wrapperRef = useRef(null)
   const focusedRef = useRef(false)
   const activeIndexRef = useRef(-1)
   const filteredRef = useRef([])
   const debounceRef = useRef(null)
-  const positionRef = useRef({ top: -9999, left: -9999, width: 0, maxHeight: 240 })
   const selectedLabel = value ? getLabel(value) : ''
 
   const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -52,62 +52,35 @@ export function Autocomplete({
   useEffect(() => { filteredRef.current = filtered }, [filtered])
   useEffect(() => { setActiveIndex(-1) }, [filtered.length])
 
-  const updatePosition = useCallback(() => {
-    if (!inputRef.current || !menuRef.current) return
-    const rect = inputRef.current.getBoundingClientRect()
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-    const GAP = 6
-    const MIN_HEIGHT = 60
-    const MAX_HEIGHT = 320
-    const pad = 8
-    const spaceBelow = vh - rect.bottom - GAP
-    const spaceAbove = rect.top - GAP
-    let top, maxHeight
-    if (spaceBelow >= MIN_HEIGHT) {
-      top = rect.bottom + GAP
-      maxHeight = Math.min(spaceBelow - pad, MAX_HEIGHT)
-    } else if (spaceAbove >= MIN_HEIGHT) {
-      maxHeight = Math.min(spaceAbove - pad, MAX_HEIGHT)
-      top = rect.top - GAP - maxHeight
-    } else {
-      const taller = Math.max(spaceBelow, spaceAbove)
-      if (taller === spaceBelow) {
-        top = rect.bottom + GAP
-        maxHeight = Math.max(spaceBelow - pad, MIN_HEIGHT)
-      } else {
-        maxHeight = Math.max(spaceAbove - pad, MIN_HEIGHT)
-        top = rect.top - GAP - maxHeight
-      }
-    }
-    top = Math.max(GAP, Math.min(top, vh - maxHeight - GAP))
-    const left = Math.max(GAP, Math.min(rect.left, vw - rect.width - GAP))
-    positionRef.current = { top, left, width: rect.width, maxHeight }
-    Object.assign(menuRef.current.style, { top: `${top}px`, left: `${left}px`, width: `${rect.width}px`, maxHeight: `${maxHeight}px` })
+  const updateFlip = useCallback(() => {
+    if (!wrapperRef.current) return
+    const rect = wrapperRef.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const menuHeight = 260
+    setFlipUp(spaceBelow < menuHeight && rect.top > menuHeight)
   }, [])
 
   useLayoutEffect(() => {
     if (!focused) return
-    updatePosition()
-    window.addEventListener('resize', updatePosition)
-    window.addEventListener('scroll', updatePosition, true)
+    updateFlip()
+    window.addEventListener('resize', updateFlip)
+    window.addEventListener('scroll', updateFlip, true)
     let observer
-    if (inputRef.current) {
-      observer = new ResizeObserver(updatePosition)
-      observer.observe(inputRef.current)
+    if (wrapperRef.current) {
+      observer = new ResizeObserver(updateFlip)
+      observer.observe(wrapperRef.current)
     }
     return () => {
-      window.removeEventListener('resize', updatePosition)
-      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updateFlip)
+      window.removeEventListener('scroll', updateFlip, true)
       if (observer) observer.disconnect()
     }
-  }, [focused, updatePosition])
+  }, [focused, updateFlip])
 
   useEffect(() => {
     if (!focused) return
     const handleOutside = (event) => {
-      if (inputRef.current && !inputRef.current.contains(event.target) &&
-          menuRef.current && !menuRef.current.contains(event.target)) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setFocused(false)
         setQuery('')
         setActiveIndex(-1)
@@ -177,14 +150,14 @@ export function Autocomplete({
       case 'PageUp':
         if (count) {
           event.preventDefault()
-          const step = Math.max(1, Math.floor((positionRef.current.maxHeight || 240) / 52))
+          const step = Math.max(1, Math.floor(260 / 52))
           setActiveIndex(Math.max(0, idx - step))
         }
         break
       case 'PageDown':
         if (count) {
           event.preventDefault()
-          const step = Math.max(1, Math.floor((positionRef.current.maxHeight || 240) / 52))
+          const step = Math.max(1, Math.floor(260 / 52))
           setActiveIndex(Math.min(count - 1, idx + step))
         }
         break
@@ -236,7 +209,7 @@ export function Autocomplete({
   )
 
   return (
-    <div className="relative z-[1000]">
+    <div ref={wrapperRef} className="relative">
       <input
         id={id}
         ref={inputRef}
@@ -277,18 +250,19 @@ export function Autocomplete({
         aria-autocomplete="list"
         aria-controls={`${id}-listbox`}
       />
-      {focused ? createPortal(
+      {focused ? (
         <div
           ref={menuRef}
           id={`${id}-listbox`}
           role="listbox"
-          className="fixed z-[9999] overflow-auto rounded-xl border border-white/10 bg-[#111118] p-1.5 shadow-2xl shadow-black/60"
-          style={positionRef.current}
+          className={`absolute z-[9999] w-full overflow-auto rounded-xl border border-white/10 bg-[#111118] p-1.5 shadow-2xl shadow-black/60 ${
+            flipUp ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}
+          style={{ maxHeight: Math.min(window.innerHeight - 120, 320) }}
           onMouseDown={(event) => event.preventDefault()}
         >
           {menuContent}
-        </div>,
-        document.body
+        </div>
       ) : null}
     </div>
   )
