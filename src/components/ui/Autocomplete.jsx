@@ -23,6 +23,7 @@ export function Autocomplete({
   const menuRef = useRef(null)
   const focusedRef = useRef(false)
   const activeIndexRef = useRef(-1)
+  const filteredRef = useRef([])
   const debounceRef = useRef(null)
   const positionRef = useRef({ top: -9999, left: -9999, width: 0, maxHeight: 240 })
   const selectedLabel = value ? getLabel(value) : ''
@@ -48,6 +49,7 @@ export function Autocomplete({
 
   useEffect(() => { focusedRef.current = focused }, [focused])
   useEffect(() => { activeIndexRef.current = activeIndex }, [activeIndex])
+  useEffect(() => { filteredRef.current = filtered }, [filtered])
   useEffect(() => { setActiveIndex(-1) }, [filtered.length])
 
   const updatePosition = useCallback(() => {
@@ -131,7 +133,8 @@ export function Autocomplete({
   const handleKeyDown = useCallback((event) => {
     const key = event.key
     if (!focusedRef.current) return
-    const count = filtered.length
+    const items = filteredRef.current
+    const count = items.length
     let idx = activeIndexRef.current
     switch (key) {
       case 'ArrowDown':
@@ -145,7 +148,7 @@ export function Autocomplete({
       case 'Enter':
         event.preventDefault()
         if (idx >= 0 && idx < count) {
-          const item = filtered[idx]
+          const item = items[idx]
           onSelect(item)
           setFocused(false)
           setQuery('')
@@ -186,7 +189,7 @@ export function Autocomplete({
         }
         break
     }
-  }, [filtered, onSelect])
+  }, [onSelect])
 
   useEffect(() => {
     if (activeIndex < 0 || !menuRef.current) return
@@ -204,7 +207,6 @@ export function Autocomplete({
   }, [onSelect])
 
   const hasQuery = debouncedQuery.trim().length > 0
-  const showResults = hasQuery && debouncedQuery.trim().length >= minQueryLength
 
   const menuContent = !hasQuery ? (
     <p className="px-3 py-3 text-sm text-white/45">{startText}</p>
@@ -256,7 +258,16 @@ export function Autocomplete({
             }
           }, 180)
         }}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => {
+          const value = event.target.value
+          if (!value && focusedRef.current) {
+            setFocused(false)
+            setQuery('')
+            setActiveIndex(-1)
+            return
+          }
+          setQuery(value)
+        }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm outline-none transition focus:border-blue-400/60 disabled:opacity-50"
