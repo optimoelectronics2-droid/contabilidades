@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Clock3, Keyboard, Mail, Minus, Plus, RotateCcw, Save, ScanBarcode, Send, Sparkles, Trash2, UserPlus } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
+import { Autocomplete } from '../../components/ui/Autocomplete'
 import { InvoicePreview } from '../../components/invoice/InvoicePreview'
 import { useToast } from '../../hooks/useToast'
 import { useERPStore } from '../../store/useERPStore'
@@ -26,7 +27,6 @@ export function POS() {
   const [mode, setMode] = useState(() => initialDraft?.mode || invoiceModes.NO_TAX)
   const [ncfType, setNcfType] = useState(() => initialDraft?.ncfType || 'NO_FISCAL')
   const [query, setQuery] = useState('')
-  const [customerQuery, setCustomerQuery] = useState(() => initialDraft?.customerQuery || '')
   const [customerId, setCustomerId] = useState(() => initialDraft?.customerId || '')
   const [customerModal, setCustomerModal] = useState(false)
   const [customerDraft, setCustomerDraft] = useState({ name: '', document: '', phone: '', whatsapp: '', type: 'persona', preferredNcf: 'B02', paymentTerm: 'Contado', priceList: 'Detal', creditLimit: 0 })
@@ -43,17 +43,6 @@ export function POS() {
     return products
       .filter((product) => `${product.name} ${product.sku} ${product.barcode} ${(product.serials || []).join(' ')}`.toLowerCase().includes(query.toLowerCase()))
   }, [products, query])
-  const customerResults = useMemo(() => {
-    const text = normalize(customerQuery)
-    if (customerId) return []
-    if (!text) return []
-    return customers
-      .map((item) => ({ customer: item, score: scoreCustomer(item, text) }))
-      .filter((entry) => entry.score > 0)
-      .sort((left, right) => right.score - left.score || String(left.customer.name || '').localeCompare(String(right.customer.name || '')))
-      .slice(0, 8)
-      .map((entry) => entry.customer)
-  }, [customerId, customerQuery, customers])
 
   useEffect(() => {
     if (cashRegister?.status !== 'open') {
@@ -67,12 +56,12 @@ export function POS() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const payload = { mode, ncfType, customerId, customerQuery, paymentMethod, cart, savedAt: nowIso() }
+      const payload = { mode, ncfType, customerId, paymentMethod, cart, savedAt: nowIso() }
       localStorage.setItem(POS_DRAFT_KEY, JSON.stringify(payload))
       setDraftStatus(cart.length ? 'Autoguardado ahora' : 'Listo')
     }, 350)
     return () => window.clearTimeout(timer)
-  }, [cart, customerId, customerQuery, mode, ncfType, paymentMethod])
+  }, [cart, customerId, mode, ncfType, paymentMethod])
 
   useEffect(() => {
     const handler = (event) => {
@@ -187,7 +176,7 @@ export function POS() {
       }
       const draft = saveInvoiceDraft({
         customerId: selectedCustomerId || 'generic-customer',
-        customerName: customer?.name || customerQuery || 'Cliente Generico',
+        customerName: customer?.name || 'Cliente Generico',
         mode,
         ncfType,
         items: cart,
@@ -293,32 +282,17 @@ export function POS() {
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="relative flex gap-2">
             <div className="min-w-0 flex-1">
-              <input
-                id="pos-customer-query"
-                name="pos-customer-query"
-                value={customerQuery}
-                onChange={(event) => { setCustomerQuery(event.target.value); setCustomerId('') }}
-                className="w-full rounded-lg border border-white/10 bg-[#0d0e14] px-3 py-3 text-sm outline-none placeholder:text-white/35"
+              <Autocomplete
+                value={customer}
+                items={customers}
                 placeholder="Buscar cliente por nombre, RNC, cedula, telefono o WhatsApp"
-                aria-label="pos-customer-query"
+                name="pos-customer-query"
+                emptyText="No encontramos ese cliente. Puedes registrarlo con el boton +."
+                getMeta={(customer) => `${customer.rnc || customer.cedula || customer.phone || 'Sin documento'}`}
+                getSearchText={(customer) => `${customer.name || ''} ${customer.rnc || ''} ${customer.cedula || ''} ${customer.phone || ''} ${customer.whatsapp || ''} ${customer.email || ''} ${customer.address || ''} ${customer.fullAddress || ''}`}
+                onSelect={(customer) => { setCustomerId(customer.id) }}
               />
-              {customerResults.length ? (
-                <div className="absolute left-0 right-12 top-12 z-[9999] max-h-72 overflow-auto rounded-lg border border-white/10 bg-[#111118] p-2 shadow-2xl">
-                  {customerResults.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => { setCustomerId(item.id); setCustomerQuery(item.name || '') }}
-                      className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-white/[0.07]"
-                    >
-                      <span className="block font-bold text-white">{item.name}</span>
-                      <span className="block text-xs text-white/45">{[item.rnc, item.cedula, item.phone, item.whatsapp].filter(Boolean).join(' · ') || 'Sin datos adicionales'}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
               {customerId ? <p className="mt-1 text-xs font-bold text-emerald-300">Cliente seleccionado: {customer?.name}</p> : null}
-              {customerQuery.trim() && !customerId && !customerResults.length ? <p className="mt-1 text-xs font-bold text-amber-300">No encontramos ese cliente. Puedes registrarlo con el boton +.</p> : null}
             </div>
             <button type="button" title="Registrar cliente" onClick={() => setCustomerModal(true)} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.035] text-white/70 hover:bg-white/[0.08]"><UserPlus size={18} /></button>
           </div>
@@ -407,47 +381,6 @@ function Row({ label, value, strong }) {
 function lineTotal(item, mode) {
   const calculated = calculateInvoice([item], mode).items[0]
   return (calculated?.net || 0) + (calculated?.tax || 0)
-}
-
-function scoreCustomer(customer, query) {
-  const fields = [
-    customer.name,
-    customer.rnc,
-    customer.cedula,
-    customer.document,
-    customer.phone,
-    customer.whatsapp,
-    customer.email,
-    customer.address,
-    customer.fullAddress,
-  ].map(normalize)
-  const parts = query.split(/\s+/).filter(Boolean)
-  return fields.reduce((score, field) => {
-    if (!field) return score
-    if (field === query) return score + 120
-    if (field.startsWith(query)) return score + 90
-    if (field.includes(query)) return score + 60
-    if (parts.length > 1 && parts.every((part) => field.includes(part))) return score + 45
-    if (query.length >= 4 && levenshtein(field.slice(0, query.length + 2), query) <= 2) return score + 15
-    return score
-  }, 0)
-}
-
-function normalize(value = '') {
-  return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
-}
-
-function levenshtein(a, b) {
-  const matrix = Array.from({ length: b.length + 1 }, (_, index) => [index])
-  for (let index = 0; index <= a.length; index += 1) matrix[0][index] = index
-  for (let row = 1; row <= b.length; row += 1) {
-    for (let col = 1; col <= a.length; col += 1) {
-      matrix[row][col] = b[row - 1] === a[col - 1]
-        ? matrix[row - 1][col - 1]
-        : Math.min(matrix[row - 1][col - 1] + 1, matrix[row][col - 1] + 1, matrix[row - 1][col] + 1)
-    }
-  }
-  return matrix[b.length][a.length]
 }
 
 function readPosDraft() {
